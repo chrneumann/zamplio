@@ -1,0 +1,13 @@
+[package]
+name = "zamplio"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.93"
+clap = "4.5.21"
+cpal = { version = "0.15.3", features = ["jack"] }
+hound = "3.5.1"
+rand = "0.8.5"
