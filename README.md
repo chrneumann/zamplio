@@ -2,6 +2,7 @@
 
 Zamplio is a sample based music instrument and sample recorder/editor.
 
+```
 +---------------------------------------+
 |  +------------------------+   ____    |
 |  |    __     ____    _____|  /    \   |
@@ -11,6 +12,7 @@ Zamplio is a sample based music instrument and sample recorder/editor.
 |  +------------------------+           |
 |   (     )  (     ) (     )   ZAMPLIO  |
 +---------------------------------------+
+```
 
 Implemented features:
 
