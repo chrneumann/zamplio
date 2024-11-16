@@ -1,12 +1,12 @@
 mod audio;
 
 use audio::sample::Sample;
-use audio::Audio;
+use audio::{Audio, SampleFormat};
 
 fn main() -> anyhow::Result<()> {
     let mut audio = Audio::new();
     audio.init()?;
-    let sample = Sample::load("example.wav")?;
+    let sample = Sample::<SampleFormat>::load("example.wav")?;
     std::thread::sleep(std::time::Duration::from_millis(2000));
     println! {"go"};
     audio.play_sample(&sample)?;

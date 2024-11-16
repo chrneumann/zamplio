@@ -4,13 +4,14 @@ extern crate cpal;
 
 pub mod sample;
 
-use anyhow::{anyhow, Error};
+pub type SampleFormat = i32;
+
+use anyhow::anyhow;
 use cpal::{
     traits::{DeviceTrait, HostTrait, StreamTrait},
     SizedSample,
 };
 use cpal::{FromSample, SampleRate};
-use rand::prelude::*;
 
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
@@ -18,7 +19,7 @@ use std::sync::{Arc, Mutex};
 /// Interface to the systems audio.
 pub struct Audio {
     stream: Option<cpal::Stream>,
-    buffer: Arc<Mutex<VecDeque<i16>>>,
+    buffer: Arc<Mutex<VecDeque<SampleFormat>>>,
 }
 
 impl Audio {
@@ -32,7 +33,7 @@ impl Audio {
     pub fn init(&mut self) -> Result<(), anyhow::Error> {
         let (_host, device, config) = host_device_setup()?;
         self.stream = Some(match config.sample_format() {
-            cpal::SampleFormat::I16 => self.make_stream::<i16>(&device, &config.into()),
+            cpal::SampleFormat::I32 => self.make_stream::<SampleFormat>(&device, &config.into()),
             sample_format => Err(anyhow::Error::msg(format!(
                 "Unsupported sample format '{sample_format}'"
             ))),
@@ -46,7 +47,7 @@ impl Audio {
         config: &cpal::StreamConfig,
     ) -> Result<cpal::Stream, anyhow::Error>
     where
-        T: SizedSample + FromSample<i16>,
+        T: SizedSample + FromSample<SampleFormat>,
     {
         let num_channels = config.channels as usize;
         let err_fn = |err| eprintln!("Error building output sound stream: {}", err);
@@ -104,7 +105,10 @@ impl Audio {
         Ok(stream)
     }
 
-    pub fn play_sample(&mut self, sample: &self::sample::Sample) -> anyhow::Result<()> {
+    pub fn play_sample(
+        &mut self,
+        sample: &self::sample::Sample<SampleFormat>,
+    ) -> anyhow::Result<()> {
         for v in sample.data() {
             self.buffer.lock().unwrap().push_back(*v);
         }
@@ -128,8 +132,8 @@ pub fn host_device_setup(
             continue;
         }
         match range.sample_format() {
-            cpal::SampleFormat::I16 => {
-                return Ok((host, device, range.with_sample_rate(SampleRate(44100))));
+            cpal::SampleFormat::I32 => {
+                return Ok((host, device, range.with_sample_rate(SampleRate(48000))));
             }
             _ => {}
         }
