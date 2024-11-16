@@ -20,10 +20,15 @@ impl Sampler {
         Ok(Sampler { audio, tracks })
     }
 
+    /// Returns the given track.
+    pub fn get_track_mut(&mut self, index: usize) -> &mut Track {
+        &mut self.tracks[index]
+    }
+
     /// Next step in the loop.
     pub fn tick(&mut self) -> Result<(), anyhow::Error> {
-        let mut anything_new = false;
         while !self.audio.buffer_full() {
+            let mut anything_new = false;
             match self.tracks[0].tick()? {
                 Some(sample) => {
                     self.audio.play_sample(sample)?;
@@ -31,9 +36,9 @@ impl Sampler {
                 }
                 None => {}
             }
-            // if !anything_new {
-            //     return Ok(());
-            // }
+            if !anything_new {
+                return Ok(());
+            }
         }
         Ok(())
     }

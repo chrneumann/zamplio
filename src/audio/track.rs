@@ -25,10 +25,10 @@ impl Track {
             sample: None,
             position: 0,
             reverse: false,
-            pingpong: true,
+            pingpong: false,
             playing: false,
-            start: 200000,
-            stop: 400000,
+            start: 0,
+            stop: 26000,
         }
     }
 
