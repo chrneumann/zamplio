@@ -3,6 +3,8 @@ extern crate clap;
 extern crate cpal;
 
 pub mod sample;
+pub mod sampler;
+pub mod track;
 
 pub type SampleFormat = i32;
 
@@ -39,6 +41,11 @@ impl Audio {
             ))),
         }?);
         Ok(())
+    }
+
+    /// Returns true if the audio buffer is full.
+    pub fn buffer_full(&self) -> bool {
+        self.buffer.lock().unwrap().len() > 10000
     }
 
     pub fn make_stream<T>(
@@ -105,13 +112,8 @@ impl Audio {
         Ok(stream)
     }
 
-    pub fn play_sample(
-        &mut self,
-        sample: &self::sample::Sample<SampleFormat>,
-    ) -> anyhow::Result<()> {
-        for v in sample.data() {
-            self.buffer.lock().unwrap().push_back(*v);
-        }
+    pub fn play_sample(&mut self, sample: SampleFormat) -> anyhow::Result<()> {
+        self.buffer.lock().unwrap().push_back(sample);
         self.stream.as_ref().unwrap().play()?;
         Ok(())
     }

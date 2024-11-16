@@ -2,6 +2,7 @@ use anyhow;
 use hound::WavReader;
 
 // An audio sample.
+#[derive(Clone)]
 pub struct Sample<T>
 where
     T: hound::Sample,
@@ -26,7 +27,7 @@ where
     }
 
     /// Return the sample's data.
-    pub fn data(&self) -> &Vec<T> {
+    pub fn get_data(&self) -> &Vec<T> {
         &self.data
     }
 }
