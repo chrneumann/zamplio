@@ -45,7 +45,7 @@ impl Audio {
 
     /// Returns true if the audio buffer is full.
     pub fn buffer_full(&self) -> bool {
-        self.buffer.lock().unwrap().len() > 10000
+        self.buffer.lock().unwrap().len() > 5000
     }
 
     pub fn make_stream<T>(
@@ -61,17 +61,6 @@ impl Audio {
 
         let time_at_start = std::time::Instant::now();
         println!("Time at start: {:?}", time_at_start);
-
-        // let mut rng = rand::thread_rng();
-        // let mut buffer: Vec<i16> = Vec::new();
-        // for _ in 0..4000000 {
-        //     buffer.push(rng.gen::<i16>())
-        // }
-        // println!{"buffer length{}", self.buffer.len()};
-        // let buffer = Arc::new(Mutex::new(self.buffer));
-        // let mut i = 0;
-
-        // let ref mut buffer = &self.buffer;
 
         let buffer = self.buffer.clone();
 

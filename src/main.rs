@@ -31,7 +31,7 @@ fn main() -> anyhow::Result<()> {
                 None => {}
             }
         }
-        std::thread::sleep(std::time::Duration::from_micros(100));
+        std::thread::sleep(std::time::Duration::from_micros(1));
     }
     Ok(())
 }

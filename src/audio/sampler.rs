@@ -12,7 +12,6 @@ impl Sampler {
         let mut tracks = vec![Track::new()];
 
         tracks[0].load_sample("example.wav")?;
-        tracks[0].strike();
 
         let mut audio = Audio::new();
         audio.init()?;

@@ -28,13 +28,14 @@ impl Track {
             pingpong: false,
             playing: false,
             start: 0,
-            stop: 26000,
+            stop: 0,
         }
     }
 
     /// Loads a sample into the track.
     pub fn load_sample(&mut self, path: &str) -> Result<(), anyhow::Error> {
         self.sample = Some(Sample::<SampleFormat>::load(path)?);
+        self.stop = self.sample.as_ref().unwrap().get_data().len() - 1;
         Ok(())
     }
 
@@ -46,7 +47,7 @@ impl Track {
 
     /// Returns the next sample.
     pub fn tick(&mut self) -> Result<Option<SampleFormat>, anyhow::Error> {
-        if !self.playing {
+        if !self.playing || self.position >= self.stop {
             return Ok(None);
         }
         let sample = self.sample.as_ref().unwrap().get_data()[self.position];
