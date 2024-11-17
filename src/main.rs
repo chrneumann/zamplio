@@ -4,7 +4,7 @@ mod midi;
 use audio::sampler::Sampler;
 use midi::Instrument;
 
-use crate::midi::MidiMessageType;
+use midi_msg::*;
 
 fn main() -> anyhow::Result<()> {
     let mut sampler = Sampler::new()?;
@@ -16,12 +16,17 @@ fn main() -> anyhow::Result<()> {
             match instrument.pop_event() {
                 Some(event) => {
                     println! {"event {:?}", event};
-                    match event.message.r#type {
-                        MidiMessageType::NoteOn => {
-                            sampler.get_track_mut(0).strike();
-                        }
+                    match event.message {
+                        MidiMsg::ChannelVoice { channel: _, msg } => match msg {
+                            ChannelVoiceMsg::NoteOn { note: _, velocity } => {
+                                if velocity > 0 {
+                                    sampler.get_track_mut(0).strike();
+                                }
+                            }
+                            _ => {}
+                        },
                         _ => {}
-                    }
+                    };
                 }
                 None => {}
             }

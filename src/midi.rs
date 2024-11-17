@@ -1,8 +1,8 @@
 extern crate midir;
 
-use std::collections::{HashMap, VecDeque};
+use midi_msg::*;
+use std::collections::VecDeque;
 use std::sync::mpsc;
-
 use std::time::Instant;
 
 // use super::session::{Channel, Note, Velocity};
@@ -14,40 +14,8 @@ pub type Velocity = u8;
 
 #[derive(Debug)]
 pub struct MidiEvent {
-    pub message: MidiMessage,
+    pub message: MidiMsg,
     pub instant: Option<Instant>,
-}
-
-#[derive(Debug)]
-pub enum MidiMessageType {
-    NoteOff,
-    NoteOn,
-    ControlChange,
-}
-
-#[derive(Debug)]
-pub struct MidiMessage {
-    pub r#type: MidiMessageType,
-    pub channel: Channel,
-    pub note: Note,
-    pub velocity: Velocity,
-}
-
-impl MidiMessage {
-    pub fn from_array(message: &[u8]) -> MidiMessage {
-        println!("received {:?}", message);
-        return MidiMessage {
-            r#type: match message[0] {
-                0x80..=0x8F => MidiMessageType::NoteOff,
-                0x90..=0x9F => MidiMessageType::NoteOn,
-                0xb0..=0xbf => MidiMessageType::ControlChange,
-                _ => panic!("Unknown MIDI message {:?}", message), // TODO
-            },
-            channel: 1, // TODO
-            note: message[1],
-            velocity: message[2],
-        };
-    }
 }
 
 type MidiEventQueue = VecDeque<MidiEvent>;
@@ -58,7 +26,6 @@ pub struct Instrument {
     events_in: MidiEventQueue,
     chan_out: mpsc::Sender<MidiEvent>,
     chan_in: mpsc::Receiver<MidiEvent>,
-    debug: bool,
 }
 
 impl Instrument {
@@ -70,12 +37,7 @@ impl Instrument {
             chan_out: tx,
             chan_in: rx,
             name: name.to_string(),
-            debug: true,
         }
-    }
-
-    pub fn set_debug(&mut self, v: bool) {
-        self.debug = v;
     }
 
     fn receive_events(&mut self) {
@@ -107,20 +69,15 @@ impl Instrument {
         let in_port = self.select_port(port, &midi_in).unwrap();
         let port_name = midi_in.port_name(&in_port).unwrap();
         println!("Connection open, incoming from '{}' ...", port_name);
-
-        // _conn_in needs to be a named parameter, because it needs to be kept alive until the end of the scope
         self.midi_in = Some(
             midi_in
                 .connect(
                     &in_port,
                     "midir-forward",
                     |stamp, message, chan_out| {
-                        // conn_out.send(message).unwrap_or_else(|_| println!("Error when forwarding message ..."));
-                        println!("{}: {:?} (len = {})", stamp, message, message.len());
-                        // let value : usize = message[1] as usize;
                         chan_out
                             .send(MidiEvent {
-                                message: MidiMessage::from_array(message),
+                                message: MidiMsg::from_midi(message).unwrap().0,
                                 instant: None,
                             })
                             .unwrap();
