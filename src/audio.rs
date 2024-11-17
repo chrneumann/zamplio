@@ -6,7 +6,7 @@ pub mod sample;
 pub mod sampler;
 pub mod track;
 
-pub type SampleFormat = i32;
+pub type SampleFormat = f32;
 
 use anyhow::anyhow;
 use cpal::{
@@ -28,14 +28,14 @@ impl Audio {
     pub fn new() -> Self {
         Audio {
             stream: None,
-            buffer: Arc::new(Mutex::new(VecDeque::new())),
+            buffer: Arc::new(Mutex::new(VecDeque::<SampleFormat>::new())),
         }
     }
 
     pub fn init(&mut self) -> Result<(), anyhow::Error> {
         let (_host, device, config) = host_device_setup()?;
         self.stream = Some(match config.sample_format() {
-            cpal::SampleFormat::I32 => self.make_stream::<SampleFormat>(&device, &config.into()),
+            cpal::SampleFormat::F32 => self.make_stream::<f32>(&device, &config.into()),
             sample_format => Err(anyhow::Error::msg(format!(
                 "Unsupported sample format '{sample_format}'"
             ))),
@@ -74,14 +74,14 @@ impl Audio {
                         buffer_guard
                             .pop_front()
                             .map(T::from_sample)
-                            .unwrap_or_else(|| T::from_sample(0))
+                            .unwrap_or_else(|| T::from_sample(0.0))
                     };
                     let right_value: T = {
                         let mut buffer_guard = buffer.lock().unwrap();
                         buffer_guard
                             .pop_front()
                             .map(T::from_sample)
-                            .unwrap_or_else(|| T::from_sample(0))
+                            .unwrap_or_else(|| T::from_sample(0.0))
                     };
                     let mut i = 0;
                     for sample in frame.iter_mut() {
@@ -123,7 +123,7 @@ pub fn host_device_setup(
             continue;
         }
         match range.sample_format() {
-            cpal::SampleFormat::I32 => {
+            cpal::SampleFormat::F32 => {
                 return Ok((host, device, range.with_sample_rate(SampleRate(48000))));
             }
             _ => {}

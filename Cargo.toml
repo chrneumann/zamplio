@@ -9,6 +9,7 @@ edition = "2021"
 anyhow = "1.0.93"
 clap = "4.5.21"
 cpal = { version = "0.15.3", features = ["jack"] }
+fundsp = "0.20.0"
 hound = "3.5.1"
 midi-msg = "0.7.3"
 midir = "0.10.0"

@@ -1,10 +1,12 @@
 use super::{sample::Sample, SampleFormat};
 use anyhow;
 
+use fundsp::prelude::*;
+
 /// Audio track which plays at most one sample at a time.
 pub struct Track {
     /// Sample to play.
-    sample: Option<Sample<SampleFormat>>,
+    sample: Option<Sample>,
     /// Current position in sample.
     position: usize,
     /// Ping-pong loop the sample (reverse from end).
@@ -17,6 +19,7 @@ pub struct Track {
     start: usize,
     /// Stop position.
     stop: usize,
+    // filter: An<Unit<U2, U2>>,
 }
 
 impl Track {
@@ -29,12 +32,14 @@ impl Track {
             playing: false,
             start: 0,
             stop: 0,
+            // filter: unit::<U1, U1>(Box::new(lowpass_hz(5000.0, 1.0) >> highpass_hz(1000.0, 1.0))),
+            // filter: unit::<U2, U2>(Box::new(reverb_stereo(1.0, 0.2, 0.7))),
         }
     }
 
     /// Loads a sample into the track.
     pub fn load_sample(&mut self, path: &str) -> Result<(), anyhow::Error> {
-        self.sample = Some(Sample::<SampleFormat>::load(path)?);
+        self.sample = Some(Sample::load(path)?);
         self.stop = self.sample.as_ref().unwrap().get_data().len() - 1;
         Ok(())
     }
@@ -46,11 +51,11 @@ impl Track {
     }
 
     /// Returns the next sample.
-    pub fn tick(&mut self) -> Result<Option<SampleFormat>, anyhow::Error> {
+    pub fn tick(&mut self) -> Result<Option<f32>, anyhow::Error> {
         if !self.playing || self.position >= self.stop {
             return Ok(None);
         }
-        let sample = self.sample.as_ref().unwrap().get_data()[self.position];
+        let sample = self.sample.as_ref().unwrap().get_position(self.position);
         if self.pingpong {
             if !self.reverse {
                 self.position += 1;
@@ -71,6 +76,7 @@ impl Track {
                 self.position += 1;
             }
         }
+        // let sample = self.filter.filter_stereo(sample, sample);
         Ok(Some(sample))
     }
 }
